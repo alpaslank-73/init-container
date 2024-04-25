@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: todo
+  name: todo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: todo
+    spec:
+      serviceAccount: checkdb
+      #serviceAccount: default
+      initContainers:
+        - name: checkdb1
+          image: 'quay.io/alpaslank/ose-tools-rhel8'
+          # Bura OK! # command:  ['sh', '-c', 'oc wait --for=condition=Available=True deploy/alp-mysql --timeout 300s']
+          command:  ['sh', '-c', 'until oc get deploy alp-mysql 2> /dev/null ; do sleep 3; done && oc wait --for=condition=Available=True deploy/alp-mysql --timeout 300s']
+      containers:
+      - env:
+        - name: MYSQL_DATABASE
+          value: todo
+        - name: MYSQL_USER
+          value: alp
+        - name: MYSQL_PASSWORD
+          value: sifre123
+        - name: MYSQL_HOST
+          value: alp-mysql
+        image: quay.io/alpaslank/todo
+        name: todo

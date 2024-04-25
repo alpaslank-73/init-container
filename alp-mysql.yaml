@@ -1,0 +1,53 @@
+kind: List
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"alp-mysql:1.0"},"fieldPath":"spec.template.spec.containers[?(@.name==\"alp-mysql\")].image"}]'
+      openshift.io/generated-by: OpenShiftNewApp
+    labels:
+      app: alp-mysql
+      app.kubernetes.io/component: alp-mysql
+      app.kubernetes.io/instance: alp-mysql
+    name: alp-mysql
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        deployment: alp-mysql
+    template:
+      metadata:
+        labels:
+          deployment: alp-mysql
+      spec:
+        containers:
+        - env:
+          - name: MYSQL_DATABASE
+            value: todo
+          - name: MYSQL_PASSWORD
+            value: sifre123
+          - name: MYSQL_USER
+            value: alp
+          image: 'quay.io/alpaslank/alp-mariadb-103-todo:1.0'
+          name: alp-mysql
+          ports:
+          - containerPort: 3306
+            protocol: TCP
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: alp-mysql
+      app.kubernetes.io/component: alp-mysql
+      app.kubernetes.io/instance: alp-mysql
+    name: alp-mysql
+  spec:
+    ports:
+    - name: 3306-tcp
+      port: 3306
+      protocol: TCP
+      targetPort: 3306
+    selector:
+      deployment: alp-mysql

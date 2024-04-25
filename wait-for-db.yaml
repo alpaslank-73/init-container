@@ -1,0 +1,13 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: checkdb
+spec:
+  template:
+    spec:
+      serviceAccount: checkdb
+      containers:
+      - command: ['sh', '-c', 'until oc get deploy alp-mysql 2> /dev/null ; do sleep 3; done  && oc wait --for=condition=Available=True deploy/alp-mysql --timeout 300s']
+        image: quay.io/alpaslank/ose-tools-rhel8
+        name: checkdb
+      restartPolicy: Never
